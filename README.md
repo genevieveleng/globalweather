@@ -158,3 +158,8 @@ Resolved via https://help.mulesoft.com/s/question/0D52T00004nvCde/unable-to-run-
 
 ### Anypoint Studio / JVM Kept on Crashing
 Think it is taking up alot of memory, and my computer is not powerful enough, especially when it is hosting 2 ports (8080 and 8081).
+
+## IMPORTANT LINKS
+- [Mule 4 standalone download link](https://www.mulesoft.com/lp/dl/mule-esb-enterprise)
+- [Ultimate help on understanding Mule](https://github.com/danielpowney/weatherAPI)
+- [Writing Tech Specs](https://codeburst.io/on-writing-tech-specs-6404c9791159)
