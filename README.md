@@ -24,9 +24,9 @@ It will take around 2 working days for a single engineer to develop the solution
 
 ### PRODUCT REQUIREMENT
 The solution will focus on being a medium to:
-- Receive request from solution's endpoint (localhost:8081/{api_version}/{path})
+- Receive request from solution's endpoint: `http://localhost:8081/{api_version}/{path}`
 - Convert request params (uriParams/queryParams) into XML payload - params should not be case sensitive
-- POST XML payload into GW SYS endpoint (localhost:8080/GlobalWeather)
+- POST XML payload into GW SYS endpoint `http://localhost:8080/GlobalWeather`
 - Convert response from XML into JSON
 - Return response in JSON format
 
@@ -72,7 +72,7 @@ The solution will run on MAC OS, and will open the port of 8081 using Anypoint S
 
 ## OPERATIONS
 ### ROLLOUT PLAN
-This is not a new solution, but an add-on to the existing infrastructure. Development will take place in staging environment using staging data. API consumers will also be provided with the [API Console](localhost:8081/console/) on using the endpoints to conduct testing. If there are no further comments from the API consumers, testing is considered completed and it will be rolled out to the production environment.
+This is not a new solution, but an add-on to the existing infrastructure. Development will take place in staging environment using staging data. API consumers will also be provided with the API Console, `http://localhost:8081/console/`, on using the endpoints to conduct testing. If there are no further comments from the API consumers, testing is considered completed and it will be rolled out to the production environment.
 
 There will be 24/7 support for a week upon launch to ensure smooth integration between centralized endpoint and new systems.
 
