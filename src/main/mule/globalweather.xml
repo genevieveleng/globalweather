@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:sockets="http://www.mulesoft.org/schema/mule/sockets" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:apikit-soap="http://www.mulesoft.org/schema/mule/apikit-soap" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/apikit-soap http://www.mulesoft.org/schema/mule/apikit-soap/current/mule-apikit-soap.xsd http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/sockets http://www.mulesoft.org/schema/mule/sockets/current/mule-sockets.xsd">
+    <http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="3227c5b2-fa5f-4b17-b3d2-23edf8bcdba8">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="Router" api="globalweather.raml" outboundHeadersMapName="outboundHeadersMapName" httpStatusVarName="httpStatus" />
+    <wsc:config name="consume-wsdl-localhost" doc:name="Web Service Consumer Config" doc:id="80e15b7c-2bb9-42fd-a78b-ef59570dbbd6">
+        <wsc:connection wsdlLocation="http://localhost:8080/GlobalWeather?wsdl" service="GlobalWeather" port="GlobalWeatherSoap" address="http://localhost:8080/GlobalWeather" />
+    </wsc:config>
+    <flow name="globalweather-main-raml" doc:id="fe0d8e79-5516-4580-ae9d-67799f3100b9">
+        <http:listener doc:name="Listener" doc:id="db253c2b-750f-40b3-8143-1c8f3ccef054" config-ref="HTTP_Listener_config" path="/v1/*" outputMimeType="application/json" allowedMethods="GET" responseStreamingMode="NEVER" >
+			<http:response statusCode="#[vars.statusCode default 200]" />
+			<http:error-response statusCode="#[vars.statusCode default vars.httpStatus]" />
+		</http:listener>
+        <apikit:router doc:name="APIkit Router" doc:id="29e23adf-8631-4a9c-a220-0739401f10b2" config-ref="Router" />
+    </flow>
+    <flow name="globalweather-console-wsdl" doc:id="c86b427d-35c0-4431-8fdd-da26f6c71d90">
+        <http:listener doc:name="Listener" doc:id="c79b07a9-eacd-45ac-b6bb-06dd678825a4" config-ref="HTTP_Listener_config" path="/console/*" />
+        <apikit:console doc:name="APIkit Console" doc:id="b57d6eb5-d31d-4857-932a-baf69edec137" config-ref="Router" />
+    </flow>
+    <flow name="get:\countries:Router">
+        <ee:transform doc:name="Transform Message" doc:id="0f1c058e-15d3-44a2-a1e1-6736717b4e63">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns GetCitiesByCountry http://localhost:8080/GlobalWeather
+---
+GetCitiesByCountry:
+	CountryName: ""]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <wsc:consume operation="GetCitiesByCountry" doc:name="Consume" doc:id="f52d109e-3924-4861-a200-b67edf422234" config-ref="consume-wsdl-localhost" />
+        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd" doc:id="ba192593-2c3a-402e-800c-cc3b842a4bd2">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+ns ns0 http://www.webserviceX.NET
+---
+{"data":
+	read(payload.body.GetCitiesByCountryResponse as String,"application/xml").NewDataSet.*Table map ((table , indexOfTable) -> {
+	countryName: table.Country}) distinctBy (value) -> {"unique":value}	
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\country:Router">
+        <set-variable value="#[attributes.uriParams.countryName default &quot;&quot;]" doc:name="Set Variable" doc:id="cd6c62b4-d416-40e1-872f-60292ce70472" variableName="paramCountryName" />
+        <ee:transform doc:name="Transform Message" doc:id="eb5e295f-cf56-40dc-a3fc-cf1691e31ec6">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns GetCitiesByCountry http://localhost:8080/GlobalWeather
+---
+GetCitiesByCountry:
+	CountryName: vars.paramCountryName default ""]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <wsc:consume operation="GetCitiesByCountry" doc:name="Consume" doc:id="1436a4dd-211d-4887-a2fc-53fa10f4adc0" config-ref="consume-wsdl-localhost" />
+        <ee:transform doc:name="Transform Message" doc:id="625de401-1ef1-412e-b5c1-af7c3417a47b">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+ns ns0 http://www.webserviceX.NET
+---
+read(payload.body.GetCitiesByCountryResponse as String,"application/xml").NewDataSet.*Table map ((table , indexOfTable) -> {
+	countryName: table.Country,
+	cityName: table.City
+})]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<choice doc:name="Choice" doc:id="c01d6075-695f-4446-a15d-772f38abd934">
+			<when expression='#[vars.paramCountryName == ""]'>
+				<set-variable value='400' doc:name="Set Variable" doc:id="9d0389d8-a6d6-4244-9770-5b46ed9027ec" variableName="statusCode" />
+				<ee:transform doc:name="Transform Message" doc:id="34a001a1-316d-4a4d-99c5-02b0717e91b7" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+ns ns0 http://www.webserviceX.NET
+---
+{"message":
+	"please try to affix /{countryName} to your url"}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Transform Message" doc:id="775a2847-24c1-4d7c-a496-cecd9bc3a8d8">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+import * from dw::core::Strings
+ns ns0 http://www.webserviceX.NET
+---
+{"data":
+	payload map {
+		countryName: $.countryName,
+		cityName: $.cityName
+	} filter capitalize($.countryName) == capitalize(vars.paramCountryName)
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+			</otherwise>
+		</choice>
+    </flow>
+    <flow name="get:\country\(countryName):Router">
+        <flow-ref doc:name="Flow Reference" doc:id="379d1f41-8f86-4939-aae8-c0e3c9187222" name="get:\country:Router" />
+    </flow>
+    <flow name="get:\weather:Router">
+        <set-variable value='#[attributes.queryParams.cityName default ""]' doc:name="Set Variable" doc:id="7fc8eabc-8687-4aa0-a822-3bbebc67feed" variableName="paramCityName" />
+		<ee:transform doc:name="Transform Message" doc:id="433c4519-7acc-4e2e-90bf-d59e0b6e3f11">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns GetWeather http://localhost:8080/GlobalWeather
+---
+GetWeather:
+	CityName: vars.paramCityName]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+		<wsc:consume operation="GetWeather" doc:name="Consume" doc:id="002fa9d1-59a4-48c5-b88c-f24d9130eaa5" config-ref="consume-wsdl-localhost" />
+		<ee:transform doc:name="Transform Message" doc:id="d99ef2a2-3afa-4935-ad03-e73ff9e80112">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+ns ns0 http://www.webserviceX.NET
+---
+payload.body.GetWeatherResponse as String
+replace /<!\[CDATA\[/ with("")
+replace /\]\]>/ with("")
+replace /\&lt\;/ with("<")
+replace /\&gt\;/ with(">")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="7f6d8620-fc33-4bac-b943-9b671e4c92ed" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+ns ns0 http://www.webserviceX.NET
+---
+read(payload,"application/xml").NewDataSet.*Table map ((table , indexOfTable) -> {
+	Location: table.Location,
+	Time: table.Time,
+	Wind: table.Wind,
+	Visibility: table.Visibility,
+	SkyConditions: table.SkyConditions,
+	Temperature: table.Temperature,
+	DewPoint: table.DewPoint,
+	RelativeHumidity: table.RelativeHumidity,
+	Status: table.Status
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="68b50c9c-a8bd-4512-96d4-039ff7281361" >
+			<when expression='#[vars.paramCityName == ""]'>
+				<ee:transform doc:name="Transform Message" doc:id="463c4878-941d-4200-82d3-07d837333c88" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+ns ns0 http://www.webserviceX.NET
+---
+{"data":payload,"note":"You can also try adding query param of cityName = Singapore"}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="7b8b7625-1d8a-48de-9b7a-39c1dec79bbf">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+import * from dw::core::Strings
+ns ns0 http://www.webserviceX.NET
+---
+{"data":payload map {
+	Location: $.Location,
+	Time: $.Time,
+	Wind: $.Wind,
+	Visibility: $.Visibility,
+	SkyConditions: $.SkyConditions,
+	Temperature: $.Temperature,
+	DewPoint: $.DewPoint,
+	RelativeHumidity: $.RelativeHumidity,
+	Status: $.Status
+} filter capitalize($.Location) == capitalize(vars.paramCityName)}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</otherwise>
+		</choice>
+    </flow>
+</mule>

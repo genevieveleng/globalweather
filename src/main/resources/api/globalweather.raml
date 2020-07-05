@@ -1,0 +1,143 @@
+#%RAML 1.0
+title: global_weather_restful_api
+version: 1.0
+baseUri: http://localhost:8081/api/{version}
+mediaType:  application/json
+
+types:
+  CityName:
+    type: string
+  CountryName:
+    type: string
+
+/countries:
+  get:
+    description: query all distinct countries from the database
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              [{"countryName": "Australia"},{"countryName": "Singapore"}]
+      400:
+        body:
+            application/json:
+              example: |
+                {"status_code":400,"message":"Bad Request"}
+      401:
+        body:
+            application/json:
+              example: |
+                {"status_code":401,"message":"Unauthorized"}
+      404:
+        body:
+            application/json:
+              example: |
+                {"status_code":404,"message":"Not Found"}
+      410:
+        body:
+            application/json:
+              example: |
+                {"status_code":410,"message":"Gone"}
+      500:
+        body:
+            application/json:
+              example: |
+                {"status_code":500,"message":"Internal Server Error"}
+      502:
+        body:
+            application/json:
+              example: |
+                {"status_code":502,"message":"Bad Gateway"}
+/weather:
+  get:
+    queryParameters:
+      cityName:
+        type: string
+        example: "Melbourne"
+        required: false
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              {"Location":"Melbourne","Time":"11 AM","Wind":"15 km per hour","Visibility":"10 km","SkyConditions":"sunny","Temperature":18,"DewPoint":"2 C","RelativeHumidity":35,"Status":"Normal"}
+      400:
+        body:
+            application/json:
+              example: |
+                {"status_code":400,"message":"Bad Request"}
+      401:
+        body:
+            application/json:
+              example: |
+                {"status_code":401,"message":"Unauthorized"}
+      404:
+        body:
+            application/json:
+              example: |
+                {"status_code":404,"message":"Not Found"}
+      410:
+        body:
+            application/json:
+              example: |
+                {"status_code":410,"message":"Gone"}
+      500:
+        body:
+            application/json:
+              example: |
+                {"status_code":500,"message":"Internal Server Error"}
+      502:
+        body:
+            application/json:
+              example: |
+                {"status_code":502,"message":"Bad Gateway"}
+/country:
+  get:
+    responses:
+        400:
+          body:
+            application/json:
+              example: |
+                {"message": "please try to affix /{countryName} to your url"}  
+  /{countryName}:
+    uriParameters:
+      countryName:
+        type: CountryName
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                [{"countryName": "Australia","cityName": "Archerfield Aerodrome"},{"countryName": "Australia","cityName": "Amberley Aerodrome"}]
+        400:
+          body:
+            application/json:
+              example: |
+                {"status_code":400,"message":"Bad Request"}
+        401:
+          body:
+              application/json:
+                example: |
+                  {"status_code":401,"message":"Unauthorized"}
+        404:
+          body:
+              application/json:
+                example: |
+                  {"status_code":404,"message":"Not Found"}
+        410:
+          body:
+              application/json:
+                example: |
+                  {"status_code":410,"message":"Gone"}
+        500:
+          body:
+              application/json:
+                example: |
+                  {"status_code":500,"message":"Internal Server Error"}
+        502:
+          body:
+              application/json:
+                example: |
+                  {"status_code":502,"message":"Bad Gateway"}
