@@ -158,7 +158,7 @@ read(payload,"application/xml").NewDataSet.*Table map ((table , indexOfTable) ->
 output application/json
 ns ns0 http://www.webserviceX.NET
 ---
-{"data":payload,"note":"You can also try adding query param of cityName = Singapore"}]]></ee:set-payload>
+{"data":payload,"message":"You can also try adding query param of cityName = Singapore"}]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
 			</when>
